@@ -847,7 +847,7 @@ end
 end
 
 game:GetService("Players").PlayerAdded:Connect(function(Player)
-if Player.Name == getgenv().Host then
+if Player.Name == getgenv().HostUser then
 	checkWhitelist()
 end
 end)
