@@ -7,19 +7,21 @@ local function hasGroupRole(hostUsername, groupId, roleName)
     end)
 
     if success then
-        local player = game:GetService("Players"):GetPlayerByUserId(userId)
-        
-        if player then
-            local playerRank = player:GetRankInGroup(groupId)
-            local groupInfo = game:GetService("GroupService"):GetGroupInfoAsync(groupId)
+        local groupService = game:GetService("GroupService")
+        local success, groupRoles = pcall(function()
+            return groupService:GetGroupInfoAsync(groupId)
+        end)
 
-            for _, role in ipairs(groupInfo.Roles) do
+        if success then
+            for _, role in ipairs(groupRoles.Roles) do
                 if role.Name == roleName then
+                    local playerRank = groupService:GetRankInGroup(userId, groupId)
                     return playerRank >= role.Rank
                 end
             end
         end
     end
+
     return false
 end
 
@@ -27,6 +29,7 @@ local function checkWhitelist()
     local localPlayer = game:GetService("Players").LocalPlayer
 
     if hasGroupRole(getgenv().HostUser, groupId, requiredRole) then
+        print("Player is whitelisted.")
 local Testing = false
 -- Cmds
 if table.find(getgenv().Alts,game.Players.LocalPlayer.UserId) then
@@ -842,14 +845,16 @@ Services["Players"].PlayerAdded:Connect(function(Player)
 	end
 end)
 else
-	localPlayer:Kick("group whitelist")
+	localPlayer:Kick("You are not whitelisted in the group.")
 end
 end
 
-game:GetService("Players").PlayerAdded:Connect(function(Player)
-if Player.Name == getgenv().HostUser then
+-- Check whitelist for the local player
+checkWhitelist()
+
+-- Check whitelist when the specified host joins
+game:GetService("Players").PlayerAdded:Connect(function(player)
+if player.Name == getgenv().HostUser then
 	checkWhitelist()
 end
 end)
-
-checkWhitelist()
